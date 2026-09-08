@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Player {
+  id                 String  @id @default(uuid())
+  name               String
+  team               String
+  position           String
+  rating             Int
+  nationality        String?
+  imageUrl           String?
+  preferredFoot      String?
+  weakFootAccuracy   Int?
+  weakFootFrequency  Int?
+  height             Int?
+  weight             Int?
+  age                Int?
+  currentLevel       Int?
+  levelCap           Int?
+  currentPoints      Int?
+  stats              PlayerStats?
+  positions          PlayerPosition[]
+  skills             PlayerSkill[]
+  boosters           PlayerBooster[]
+  trainingLogs       TrainingLog[]
+  managerId          String?
+manager            Manager? @relation(fields: [managerId], references: [id])
+}
+
+model PlayerStats {
+  id                   String @id @default(uuid())
+  playerId             String @unique
+  player               Player @relation(fields: [playerId], references: [id])
+
+  offensiveAwareness   Int?
+  ballControl          Int?
+  dribbling            Int?
+  tightPossession      Int?
+  lowPass              Int?
+  loftedPass           Int?
+  finishing            Int?
+  heading              Int?
+  setPieceTaking       Int?
+  curl                 Int?
+
+  defensiveAwareness   Int?
+  defensiveEngagement  Int?
+  ballWinning          Int?
+  aggressiveness       Int?
+  goalkeeping          Int?
+  catching             Int?
+  clearing             Int?
+  collapsing           Int?
+  deflecting           Int?
+
+  speed                Int?
+  acceleration         Int?
+  kickingPower         Int?
+  jump                 Int?
+  physicalContact      Int?
+  bodyControl          Int?
+  stamina              Int?
+}
+
+model Position {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  playerPositions PlayerPosition[]
+}
+
+model PlayerPosition {
+  id         String @id @default(uuid())
+  playerId   String
+  positionId String
+  adequacy   String
+
+  player     Player   @relation(fields: [playerId], references: [id])
+  position   Position @relation(fields: [positionId], references: [id])
+
+  @@unique([playerId, positionId])
+}
+
+model Skill {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  playerSkills PlayerSkill[]
+}
+
+model PlayerSkill {
+  id       String @id @default(uuid())
+  playerId String
+  skillId  String
+
+  player   Player @relation(fields: [playerId], references: [id])
+  skill    Skill  @relation(fields: [skillId], references: [id])
+
+  @@unique([playerId, skillId])
+}
+
+model Booster {
+  id                    String @id @default(uuid())
+  name                  String
+  isConditional         Boolean
+  conditionDescription  String?
+  playerBoosters        PlayerBooster[]
+  effects               BoosterEffect[]
+}
+
+model BoosterEffect {
+  id           String  @id @default(uuid())
+  boosterId    String
+  statName     String
+  boostAmount  Int
+
+  booster      Booster @relation(fields: [boosterId], references: [id])
+}
+
+model PlayerBooster {
+  id         String @id @default(uuid())
+  playerId   String
+  boosterId  String
+  slotNumber Int
+
+  player     Player  @relation(fields: [playerId], references: [id])
+  booster    Booster @relation(fields: [boosterId], references: [id])
+
+  @@unique([playerId, slotNumber])
+}
+
+model TrainingLog {
+  id               String   @id @default(uuid())
+  playerId         String
+  simulationName   String
+  createdAt        DateTime @default(now())
+  allocatedPoints  Json
+  resultingStats   Json
+  notes            String?
+
+  player           Player   @relation(fields: [playerId], references: [id])
+}
+
+model Manager {
+  id             String @id @default(uuid())
+  name           String
+  adequacyValue  Int
+
+  players        Player[]
+  effects        ManagerEffect[]
+}
+
+model ManagerEffect {
+  id         String @id @default(uuid())
+  managerId  String
+  statName   String
+
+  manager    Manager @relation(fields: [managerId], references: [id])
+}
+
+model ManagerThreshold {
+  id             String @id @default(uuid())
+  adequacyValue  Int    @unique
+  lowMax         Int
+  midMax         Int
+}
